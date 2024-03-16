@@ -1,0 +1,7 @@
+[2,"\n"]
+[1,"\r\n\r\nprocessing file: bennetchristensen.github.io.qmd\r\n"]
+[1,"\r  |                                                                            \r  |                                                                      |   0%\r  |                                                                            \r  |.......................                                               |  33%\r\n  ordinary text without R code\r\n\r\n\r  |                                                                            \r  |...............................................                       |  67%\r\nlabel: unnamed-chunk-1\r\n"]
+[1,"\r  |                                                                            \r  |......................................................................| 100%\r\n  ordinary text without R code\r\n\r\n\r\noutput file: bennetchristensen.github.io.knit.md\r\n\r\n"]
+[1,"pandoc \n  to: html\n  output-file: bennetchristensen.github.io.html\n  standalone: true\n  section-divs: true\n  html-math-method: mathjax\n  wrap: none\n  default-image-extension: png\n  \nmetadata\n  document-css: false\n  link-citations: true\n  date-format: long\n  lang: en\n  editor: visual\n  title: bennetchristensen.github.io\n  \n"]
+[1,"Output created: bennetchristensen.github.io.html\n\nWatching files for changes\n"]
+[1,"Browse at http://localhost:3777/bennetchristensen.github.io.html\n"]
