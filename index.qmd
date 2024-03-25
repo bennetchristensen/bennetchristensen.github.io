@@ -1,0 +1,30 @@
+---
+title: "Bennet Christensen"
+about:
+  id: intro-heading
+  template: trestles
+  image: images/profilepic.png
+  links:
+    - icon: github
+      href: https://github.com/bennetchristensen
+    - icon: linkedin
+      href: https://www.linkedin.com/in/bennet-christensen/
+---
+### This content appears above the formatted about page content.
+
+:::{#intro-heading}
+
+Brief description of me.
+
+## Education
+
+Macalester College | St. Paul MN <br>
+
+B.A. in Statistics (Honors) | Sept 2020 - May 2024
+
+:::
+
+### This content appears below the formatted about page content.
+---
+
+## 

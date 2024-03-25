@@ -1,0 +1,12 @@
+---
+title: "A Neighborhood Analysis of Drug/Narcotic Arrests in Seattle, Washington"
+description: "Capstone for Correlated Data"
+image: featured.png
+categories:
+  - Spatial Statistics
+  - Health
+  - Capstone
+about:
+  template: solana
+  image: featured.png
+---

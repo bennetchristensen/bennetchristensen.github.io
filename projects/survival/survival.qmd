@@ -1,0 +1,11 @@
+---
+title: "Brain Cancer: Determinants of Health"
+description: "Capstone for Survival Analysis"
+image: featured.png
+categories:
+  - Survival Analysis
+  - Health
+about:
+  template: solana
+  image: featured.png
+---

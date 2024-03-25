@@ -1,5 +1,11 @@
 {
   "bennetchristensen.github.io.qmd": {
     "bennetchristensen.github.io.html": "ceeb62ec"
+  },
+  "index.qmd": {
+    "index.html": "ef89e7ad"
+  },
+  "projects.qmd": {
+    "projects.html": "d7eb0fd5"
   }
 }

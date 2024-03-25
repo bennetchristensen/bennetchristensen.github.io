@@ -1,5 +1,16 @@
 project:
-  title: "bennetchristensen.github.io"
-
+  title: Bennet Christensen
+  type: website
+  output-dir: docs
+website:
+  navbar:
+    background: primary
+    search: true
+    left:
+      - text: "Home"
+        file: index.qmd
+      - text: "Projects"
+        file: projects.qmd
+      - about.qmd 
 editor: visual
 

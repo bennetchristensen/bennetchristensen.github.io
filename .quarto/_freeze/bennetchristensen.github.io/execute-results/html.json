@@ -1,7 +1,7 @@
 {
-  "hash": "c7108608fc9612a010494768a2226671",
+  "hash": "e700371471003a9f3e07ea3e85de8858",
   "result": {
-    "markdown": "---\ntitle: \"bennetchristensen.github.io\"\n---\n\n\n## Quarto\n\nQuarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.\n\n\n::: {.cell}\n\n```{.r .cell-code}\n1 + 1\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n[1] 2\n```\n:::\n:::\n",
+    "markdown": "---\ntitle: \"Bennet Christensen\"\nabout:\n  id: intro-heading\n  template: trestles\n  links:\n    - icon: github\n      href: https://github.com/bennetchristensen\n---\n\n\n## **\\### This content appears above the formatted about page content.**\n\n**:::{#intro-heading}**\n\n**Brief description of me.**\n\n**\\## Education**\n\n**Macalester College \\| St. Paul MN \\<br\\>**\n\n**B.A. in MAJOR \\| Sept 2019 - May 2023**\n\n**:::**\n\n**\\### This content appears below the formatted about page content.**\n\n\n::: {.cell}\n\n```{.r .cell-code}\n1 + 1\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n[1] 2\n```\n:::\n:::\n",
     "supporting": [],
     "filters": [
       "rmarkdown/pagebreak.lua"
