@@ -2,6 +2,10 @@
   {
     "listing": "/projects.html",
     "items": [
+      "/projects/closest/closest.html",
+      "/projects/causal/causal.html",
+      "/projects/contracts/contracts.html",
+      "/projects/brownvplata/brownvplata.html",
       "/projects/survival/survival.html",
       "/projects/correlated/correlated.html"
     ]

@@ -7,5 +7,14 @@
   },
   "projects.qmd": {
     "projects.html": "d7eb0fd5"
+  },
+  "projects/closest/closest.qmd": {
+    "closest.html": "0e7ad824"
+  },
+  "projects/brownvplata/brownvplata.qmd": {
+    "brownvplata.html": "189b48e7"
+  },
+  "projects/causal/causal.qmd": {
+    "causal.html": "2f2d8901"
   }
 }

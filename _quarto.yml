@@ -11,6 +11,12 @@ website:
         file: index.qmd
       - text: "Projects"
         file: projects.qmd
-      - about.qmd 
+  page-footer:
+    left: |
+      &copy; Bennet Christensen, 2024<br>
+      All content licensed under <i class='bi-badge-cc'></i>
+      [(CC BY-NC-SA 4.0)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+    right: |
+      Site built with <a href='https://quarto.org/'>Quarto</a>
 editor: visual
 
