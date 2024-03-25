@@ -16,5 +16,14 @@
   },
   "projects/causal/causal.qmd": {
     "causal.html": "2f2d8901"
+  },
+  "projects/contracts/contracts.qmd": {
+    "contracts.html": "1240772b"
+  },
+  "projects/correlated/correlated.qmd": {
+    "correlated.html": "170b34f5"
+  },
+  "projects/survival/survival.qmd": {
+    "survival.html": "f2d446b9"
   }
 }
