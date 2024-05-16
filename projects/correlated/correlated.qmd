@@ -10,3 +10,5 @@ about:
   template: solana
   image: featured.png
 ---
+
+Capstone project for Correlated Data, Spring 2022, viewable [here](corr.html)

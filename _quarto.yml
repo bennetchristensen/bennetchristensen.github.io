@@ -2,6 +2,8 @@ project:
   title: Bennet Christensen
   type: website
   output-dir: docs
+resources:
+    - projects/correlated/corr.html
 website:
   navbar:
     background: primary
