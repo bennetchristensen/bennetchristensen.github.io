@@ -25,5 +25,8 @@
   },
   "projects/survival/survival.qmd": {
     "survival.html": "f2d446b9"
+  },
+  "projects/baseball/deadball.qmd": {
+    "deadball.html": "f41bfd8f"
   }
 }

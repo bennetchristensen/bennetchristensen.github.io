@@ -1,0 +1,105 @@
+player1 <- read.csv("BBT.csv") 
+player1[9] <- 0
+names(player1)[names(player1)=="V9"] <-"onbase"
+player2 <- read.csv("SJN.csv")
+player2[9] <- 0
+names(player2)[names(player2)=="V9"] <-"onbase"
+up1=0
+up2=0
+runs1=0
+runs2=0
+out=0
+outcome = ""
+result=NA
+innings = 1
+
+
+##oneAtBat
+
+oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
+  player <- data.frame(dataInput[1:9])
+  runs1 <- unlist(dataInput[10])
+  up <- unlist(dataInput[11])
+  out <- unlist(dataInput[12])
+  outcome = ""
+  innings = unlist(dataInput[15])
+  if (up ==9){
+    up=0
+  }
+  up=up+1
+  pd <- min(12, basePD + 4*(pitcherHand==player$L.R[up]))
+  bat <- sample(1:100,1)
+  pitch <-sample(1:pd,1)
+  result <- bat + pitch
+  if (result<6) { #critical hit
+    hit <- sample(c(2,3,4), 1, prob=c(14/20,4/20,2/20))
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+hit
+    player$onbase[up] = player$onbase[up] + hit
+    if (hit==3){
+      outcome="Triple"
+    } else if (hit==2) {
+      outcome="Double"
+    } else if (hit ==4) {
+      outcome = "Home Run!!!"
+    }
+  } else if (result <= player$BT[up] & result > 5) { #hit
+    hit <- sample(c(1,2,4),1,prob=c(14/20,4/20,2/20))
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+hit
+    player$onbase[up] = player$onbase[up] + hit
+    if (hit==1){
+      outcome="Single"
+    } else if (hit==2) {
+      outcome="Double"
+    } else if (hit ==4) {
+      outcome = "Home Run!!!"
+    }
+  } else if (result > player$BT[up] & result <=player$OBT[up]){ #walk
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+1
+    player$onbase[up] = player$onbase[up] +1
+    outcome = "Walk"
+  } else if (result > player$OBT[up] +1 & result < 50 ){ #productive out 1
+    player$onbase[up]=0
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    if (to %in% c(3,7,8,9)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+    } else if (to %in% c(3,4,5,6)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+1
+    }
+    out = out +1
+    outcome="Productive Out"
+  } else if (result > 50 & result <70 ){ #productive out 2
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    if (to %in% c(3,7,8,9)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+    } else if (to %in% c(3,4,5,6) & length(player$onbase[player$onbase>0]) != 0){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==1])]=0
+      player$onbase[up]=1
+    }
+    out = out +1
+    outcome = "Productive Out"
+  } else { #out
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    if (to %in% c(3,4,5,6) & 1 %in% player$onbase){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==1])]=0
+      out=out+1
+      outcome="Double Play"
+    } else {
+      outcome="Out"
+    }
+    out = out +1
+    player$onbase[up]=0
+  }
+  scorers = player$onbase>3
+  if (TRUE %in% scorers & out < 4) {
+    runs1= runs1 + sum(scorers)
+    player$onbase[which(player$onbase %in% player$onbase[scorers])]= 0
+  } else if (out > 2){
+    innings=innings+0.5
+    out=0
+    player[9] <- 0
+  }
+  
+  return(c(player,runs1,up, out, outcome, result,innings))
+}

@@ -1,0 +1,162 @@
+---
+title: "Deadball Simulator"
+description: "Personal Project"
+categories:
+  - Shiny App
+  - Personal Project
+format: 
+  html:
+    resources: 
+      - shinylive-sw.js
+filters: 
+  - shinylive
+---
+
+```{shinylive-r}
+#| standalone: true
+#| viewerHeight: 600
+# player1 <- read.csv("BBT.csv") 
+player1<- data.frame("STARTING.LINEUP"=c("Jim Downs", "Nell Mann", "Wendy Flores", "Tabitha Miranda","Goldie Lopez","D","O","L","E"),"POS"=c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","L","R","L","R","L","R","R"),"BT"=c(34,31,35,28,26,23,26,24,22), "OBT"=c(34,31,35,28,26,23,26,24,22), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
+player1[9] <- 0
+names(player1)[names(player1)=="V9"] <-"onbase"
+player2 <- data.frame("STARTING.LINEUP"=c("Jim Downs", "Nell Mann", "Wendy Flores", "Tabitha Miranda","Goldie Lopez","D","O","L","E"),"POS"=c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","L","R","L","R","L","R","R"),"BT"=c(34,31,35,28,26,23,26,24,22), "OBT"=c(34,31,35,28,26,23,26,24,22), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
+player2[9] <- 0
+names(player2)[names(player2)=="V9"] <-"onbase"
+up1=0
+up2=0
+runs1=0
+runs2=0
+out=0
+outcome = ""
+result=NA
+innings = 1
+
+
+##oneAtBat
+
+oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
+  player <- data.frame(dataInput[1:9])
+  runs1 <- unlist(dataInput[10])
+  up <- unlist(dataInput[11])
+  out <- unlist(dataInput[12])
+  outcome = ""
+  innings = unlist(dataInput[15])
+  if (up ==9){
+    up=0
+  }
+  up=up+1
+  pd <- min(12, basePD + 4*(pitcherHand==player$L.R[up]))
+  bat <- sample(1:100,1)
+  pitch <-sample(1:pd,1)
+  result <- bat + pitch
+  if (result<6) { #critical hit
+    hit <- sample(c(2,3,4), 1, prob=c(14/20,4/20,2/20))
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+hit
+    player$onbase[up] = player$onbase[up] + hit
+    if (hit==3){
+      outcome="Triple"
+    } else if (hit==2) {
+      outcome="Double"
+    } else if (hit ==4) {
+      outcome = "Home Run!!!"
+    }
+  } else if (result <= player$BT[up] & result > 5) { #hit
+    hit <- sample(c(1,2,4),1,prob=c(14/20,4/20,2/20))
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+hit
+    player$onbase[up] = player$onbase[up] + hit
+    if (hit==1){
+      outcome="Single"
+    } else if (hit==2) {
+      outcome="Double"
+    } else if (hit ==4) {
+      outcome = "Home Run!!!"
+    }
+  } else if (result > player$BT[up] & result <=player$OBT[up]){ #walk
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+1
+    player$onbase[up] = player$onbase[up] +1
+    outcome = "Walk"
+  } else if (result > player$OBT[up] +1 & result < 50 ){ #productive out 1
+    player$onbase[up]=0
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    if (to %in% c(3,7,8,9)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+    } else if (to %in% c(3,4,5,6)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>0])]+1
+    }
+    out = out +1
+    outcome="Productive Out"
+  } else if (result > 50 & result <70 ){ #productive out 2
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    if (to %in% c(3,7,8,9)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+    } else if (to %in% c(3,4,5,6) & length(player$onbase[player$onbase>0]) != 0){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==1])]=0
+      player$onbase[up]=1
+    }
+    out = out +1
+    outcome = "Productive Out"
+  } else { #out
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    if (to %in% c(3,4,5,6) & 1 %in% player$onbase){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==1])]=0
+      out=out+1
+      outcome="Double Play"
+    } else {
+      outcome="Out"
+    }
+    out = out +1
+    player$onbase[up]=0
+  }
+  scorers = player$onbase>3
+  if (TRUE %in% scorers & out < 4) {
+    runs1= runs1 + sum(scorers)
+    player$onbase[which(player$onbase %in% player$onbase[scorers])]= 0
+  } else if (out > 2){
+    innings=innings+0.5
+    out=0
+    player[9] <- 0
+  }
+  
+  return(c(player,runs1,up, out, outcome, result,innings))
+}
+library(shiny)
+library(DT)
+# ui <- page_sidebar(
+#   sidebar = sidebar(open = "open",
+#      actionButton("button", "Simulate at Bat")
+#   ),
+#   textOutput("player",width=1100)
+# )
+
+ui <- fluidPage(
+    column(1,
+      actionButton("button", "Simulate at Bat"), textOutput("player")
+    ),
+    column(2,textOutput("score"), textOutput("roll"), textOutput("innings")),
+    column(3, textOutput("outs"), textOutput("outcome")),
+    column(4,plotOutput("table"))
+  )
+  server <- function(input, output) {
+    rv = reactiveValues(x=c(player1,runs1,up1,out, outcome,result,innings), y=c(player2,runs2,up2,out,outcome,result,innings))
+    observeEvent(input$button, {
+      if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneAtBat(rv$x)
+      rv$y[15]=unlist(rv$x[15])
+      } 
+      else {rv$y= oneAtBat(rv$y)
+      rv$x[15]=unlist(rv$y[15])}
+      }
+                 )
+    output$outcome <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste(unlist(rv$x[13]))}else {paste(unlist(rv$y[13]))})
+    output$score <- renderText(paste("Runs: ",unlist(rv$x[10]),"-",unlist(rv$y[10])))
+    output$outs <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Outs: ", unlist(rv$x[12]))}else {paste("Outs: ", unlist(rv$y[12]))})
+    output$roll <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Roll: ", unlist(rv$x[14]))}else {paste("Roll: ", unlist(rv$y[14]))})
+    output$innings <- renderText(paste("Inning: ", unlist(rv$y[15])))
+    output$player <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("At Bat: ", rv$x[[1]][(unlist(rv$x[11])%%9+1)])}else {paste("At Bat: ", rv$y[[1]][(unlist(rv$y[11])%%9+1)])})
+  }
+  
+shinyApp(ui=ui, server=server)
+
+```
+

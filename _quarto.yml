@@ -4,6 +4,7 @@ project:
   output-dir: docs
 resources:
     - projects/correlated/corr.html
+    - shinylive-sw.js
 website:
   navbar:
     background: primary
