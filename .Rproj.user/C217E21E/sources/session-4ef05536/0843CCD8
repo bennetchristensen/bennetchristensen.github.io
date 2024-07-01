@@ -1,19 +1,19 @@
 {
-    "id": "3A829D0D",
-    "path": "~/newGithub/bennetchristensen.github.io/projects/baseball/app.R",
-    "project_path": "projects/baseball/app.R",
+    "id": "0843CCD8",
+    "path": "C:/Users/benne/Desktop/deadball/app.R",
+    "project_path": null,
     "type": "r_source",
     "hash": "3378828346",
     "contents": "",
     "dirty": false,
-    "created": 1718995588898.0,
+    "created": 1719776481559.0,
     "source_on_save": false,
-    "relative_order": 3,
+    "relative_order": 7,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "29,7",
-        "scrollLine": "0"
+        "cursorPosition": "37,4",
+        "scrollLine": "22"
     },
     "folds": "",
     "lastKnownWriteTime": 1718598282,

@@ -136,13 +136,18 @@ ul.task-list li input[type="checkbox"] {
 
 <pre class="shinylive-r" data-engine="r"><code>#| standalone: true
 #| viewerHeight: 600
-# player1 &lt;- read.csv("BBT.csv") 
-player1&lt;- data.frame("STARTING.LINEUP"=c("Jim Downs", "Nell Mann", "Wendy Flores", "Tabitha Miranda","Goldie Lopez","D","O","L","E"),"POS"=c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","L","R","L","R","L","R","R"),"BT"=c(34,31,35,28,26,23,26,24,22), "OBT"=c(34,31,35,28,26,23,26,24,22), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
+
+library(sportyR)
+library(ggplot2)
+
+player1&lt;- data.frame("STARTING.LINEUP"=c("Jim Downs", "Nell Mann", "Wendy Flores", "Tabitha Miranda","Goldie Lopez","Donald Bautista","Orlando Watson","Lance Hebert","Lela Edwards"),"POS"=c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","L","R","L","R","L","R","R"),"BT"=c(34,31,35,28,26,23,26,24,22), "OBT"=c(39,37,38,33,30,31,29,29,29), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
 player1[9] &lt;- 0
 names(player1)[names(player1)=="V9"] &lt;-"onbase"
-player2 &lt;- data.frame("STARTING.LINEUP"=c("Jim Downs", "Nell Mann", "Wendy Flores", "Tabitha Miranda","Goldie Lopez","D","O","L","E"),"POS"=c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","L","R","L","R","L","R","R"),"BT"=c(34,31,35,28,26,23,26,24,22), "OBT"=c(34,31,35,28,26,23,26,24,22), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
+
+player2 &lt;- data.frame("STARTING.LINEUP"=c("Jessie Goodwin", "Lon Rosario", "Earnestine Rodgers", "Esperanza King","Shelton Nixon","Faye Mora","Tyree Gomez","Whitney Grimes","Lamar Everett"),"POS"=c("DH","SS", "CF", "C", "RF", "LF", "1B", "2B", "3B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","R","L","R","R","L","R","R"),"BT"=c(33,32,34,31,32,31,23,24,24), "OBT"=c(37,35,42,34,35,33,31,29,27), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
 player2[9] &lt;- 0
 names(player2)[names(player2)=="V9"] &lt;-"onbase"
+
 up1=0
 up2=0
 runs1=0
@@ -151,7 +156,6 @@ out=0
 outcome = ""
 result=NA
 innings = 1
-
 
 ##oneAtBat
 
@@ -167,8 +171,8 @@ oneAtBat &lt;- function(dataInput, basePD=4, pitcherHand="R"){
   }
   up=up+1
   pd &lt;- min(12, basePD + 4*(pitcherHand==player$L.R[up]))
-  bat &lt;- sample(1:100,1)
-  pitch &lt;-sample(1:pd,1)
+  bat &lt;- sample(1:100 ,1)
+  pitch &lt;-sample(1:pd ,1)
   result &lt;- bat + pitch
   if (result&lt;6) { #critical hit
     hit &lt;- sample(c(2,3,4), 1, prob=c(14/20,4/20,2/20))
@@ -198,7 +202,7 @@ oneAtBat &lt;- function(dataInput, basePD=4, pitcherHand="R"){
     outcome = "Walk"
   } else if (result &gt; player$OBT[up] +1 &amp; result &lt; 50 ){ #productive out 1
     player$onbase[up]=0
-    to &lt;- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    to &lt;- as.numeric(rev(strsplit(as.character(result),"")[[1]])[1])
     if (to %in% c(3,7,8,9)){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase&gt;1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase&gt;1])]+1
     } else if (to %in% c(3,4,5,6)){
@@ -207,7 +211,7 @@ oneAtBat &lt;- function(dataInput, basePD=4, pitcherHand="R"){
     out = out +1
     outcome="Productive Out"
   } else if (result &gt; 50 &amp; result &lt;70 ){ #productive out 2
-    to &lt;- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    to &lt;- as.numeric(rev(strsplit(as.character(result),"")[[1]])[1])
     if (to %in% c(3,7,8,9)){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase&gt;1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase&gt;1])]+1
     } else if (to %in% c(3,4,5,6) &amp; length(player$onbase[player$onbase&gt;0]) != 0){
@@ -218,7 +222,7 @@ oneAtBat &lt;- function(dataInput, basePD=4, pitcherHand="R"){
     out = out +1
     outcome = "Productive Out"
   } else { #out
-    to &lt;- as.numeric(last(strsplit(as.character(result),"")[[1]]))
+    to &lt;- as.numeric(rev(strsplit(as.character(result),"")[[1]])[1])
     if (to %in% c(3,4,5,6) &amp; 1 %in% player$onbase){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase&gt;1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase&gt;1])]+1
       player$onbase[which(player$onbase %in% player$onbase[player$onbase==1])]=0
@@ -242,14 +246,17 @@ oneAtBat &lt;- function(dataInput, basePD=4, pitcherHand="R"){
   
   return(c(player,runs1,up, out, outcome, result,innings))
 }
+
+oneAtBatField &lt;- function(dataInput){
+  player1 &lt;- data.frame(dataInput[1:9])
+  onBasers = player1$onbase&gt;0
+  graph &lt;- geom_baseball("MLB","infield") + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==1],x=63, y=70)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==2],x=0, y=134)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==3],x=-63, y=70))
+  return(graph)
+}
+
 library(shiny)
 library(DT)
-# ui &lt;- page_sidebar(
-#   sidebar = sidebar(open = "open",
-#      actionButton("button", "Simulate at Bat")
-#   ),
-#   textOutput("player",width=1100)
-# )
+# ui &lt;- page_sidebar( )
 
 ui &lt;- fluidPage(
     column(1,
@@ -275,10 +282,15 @@ ui &lt;- fluidPage(
     output$roll &lt;- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Roll: ", unlist(rv$x[14]))}else {paste("Roll: ", unlist(rv$y[14]))})
     output$innings &lt;- renderText(paste("Inning: ", unlist(rv$y[15])))
     output$player &lt;- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("At Bat: ", rv$x[[1]][(unlist(rv$x[11])%%9+1)])}else {paste("At Bat: ", rv$y[[1]][(unlist(rv$y[11])%%9+1)])})
+    output$table &lt;- renderPlot({
+      if ((unlist(rv$y[15])*2)%%2==0){
+      oneAtBatField(rv$x)
+      }
+      else {oneAtBatField(rv$y)}
+    })
   }
   
-shinyApp(ui=ui, server=server)
-</code></pre>
+shinyApp(ui=ui, server=server)</code></pre>
 
 
 

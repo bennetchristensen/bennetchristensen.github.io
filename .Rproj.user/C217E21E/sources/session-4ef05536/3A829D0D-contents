@@ -1,0 +1,45 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/ 
+#
+source("deadscript.R")
+library(shiny)
+library(DT)
+# Define UI for application that draws a histogram
+
+ui <- fluidPage(
+    column(1,
+      actionButton("button", "Simulate at Bat"), textOutput("player")
+    ),
+    column(2,textOutput("score"), textOutput("roll"), textOutput("innings")),
+    column(3, textOutput("outs"), textOutput("outcome")),
+    column(4,plotOutput("table"))
+  )
+  server <- function(input, output) {
+    rv = reactiveValues(x=c(player1,runs1,up1,out, outcome,result,innings), y=c(player2,runs2,up2,out,outcome,result,innings))
+    observeEvent(input$button, {
+      if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneAtBat(rv$x)
+      rv$y[15]=unlist(rv$x[15])
+      } 
+      else {rv$y=oneAtBat(rv$y)
+      rv$x[15]=unlist(rv$y[15])}
+      }
+                 )
+    output$outcome <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste(unlist(rv$x[13]))}else {paste(unlist(rv$y[13]))})
+    output$score <- renderText(paste("Runs: ",unlist(rv$x[10]),"-",unlist(rv$y[10])))
+    output$outs <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Outs: ", unlist(rv$x[12]))}else {paste("Outs: ", unlist(rv$y[12]))})
+    output$roll <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Roll: ", unlist(rv$x[14]))}else {paste("Roll: ", unlist(rv$y[14]))})
+    output$innings <- renderText(paste("Inning: ", unlist(rv$y[15])))
+    output$player <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("At Bat: ", rv$x[[1]][(unlist(rv$x[11])%%9+1)])}else {paste("At Bat: ", rv$y[[1]][(unlist(rv$y[11])%%9+1)])})
+    output$table <- renderPlot({
+      if ((unlist(rv$y[15])*2)%%2==0){
+      oneAtBatField(rv$x)
+      }
+      else {oneAtBatField(rv$y)}
+    })
+  }
+  shinyApp(ui=ui, server=server)

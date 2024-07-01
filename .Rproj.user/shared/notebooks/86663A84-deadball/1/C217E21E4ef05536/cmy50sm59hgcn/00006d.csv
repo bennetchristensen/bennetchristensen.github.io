@@ -1,0 +1,5 @@
+"0","s <- oneAtBat(c(player1,runs1,up1,out, outcome,result,innings))
+"
+"2","Error in last(strsplit(as.character(result), """")[[1]]) : 
+  could not find function ""last""
+"
