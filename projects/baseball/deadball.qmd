@@ -138,8 +138,11 @@ library(DT)
 # ui <- page_sidebar( )
 
 ui <- fluidPage(
+    sidebarPanel(
+      actionButton("button", "Simulate at Bat"),
+      conditionalPanel(condition="output.enable==0", actionButton("steal", "steal"))),
     column(1,
-      actionButton("button", "Simulate at Bat"), textOutput("player")
+           textOutput("player")
     ),
     column(2,textOutput("score"), textOutput("roll"), textOutput("innings")),
     column(3, textOutput("outs"), textOutput("outcome")),
@@ -167,6 +170,8 @@ ui <- fluidPage(
       }
       else {oneAtBatField(rv$y)}
     })
+    output$enable <- reactive({if(unlist(rv$x[15])==1.5){0}})
+    outputOptions(output, 'enable', suspendWhenHidden=FALSE)
   }
   
 shinyApp(ui=ui, server=server)
