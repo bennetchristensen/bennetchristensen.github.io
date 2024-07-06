@@ -17,9 +17,6 @@ filters:
 #| standalone: true
 #| viewerHeight: 600
 
-library(sportyR)
-library(ggplot2)
-
 player1<- data.frame("STARTING.LINEUP"=c("Jim Downs", "Nell Mann", "Wendy Flores", "Tabitha Miranda","Goldie Lopez","Donald Bautista","Orlando Watson","Lance Hebert","Lela Edwards"),"POS"=c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "Preferred.POS"= c("LF","2B", "SS", "DH", "3B", "C", "RF", "CF", "1B"), "L.R"=c("R","R","L","R","L","R","L","R","R"),"BT"=c(34,31,35,28,26,23,26,24,22), "OBT"=c(39,37,38,33,30,31,29,29,29), "TRAITS"=c("","","","","","","","",""), "QUALITY"=c("OK","OK","OK","OK","OK","OK","OK","OK","OK"))
 player1[9] <- 0
 names(player1)[names(player1)=="V9"] <-"onbase"
@@ -36,6 +33,8 @@ out=0
 outcome = ""
 result=NA
 innings = 1
+# field = geom_baseball("MLB","infield")
+scorecard = data.frame("Team"= c("BBT", "SJN"), "1"=c(0,0), "2"=c(0,0),"3"=c(0,0),"4"=c(0,0),"5"=c(0,0),"6"=c(0,0),"7"=c(0,0),"8"=c(0,0),"9"=c(0,0),check.names = F)
 
 ##oneAtBat
 
@@ -46,13 +45,14 @@ oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
   out <- unlist(dataInput[12])
   outcome = ""
   innings = unlist(dataInput[15])
+  scorecard = dataInput[16][[1]]
   if (up ==9){
     up=0
   }
   up=up+1
   pd <- min(12, basePD + 4*(pitcherHand==player$L.R[up]))
-  bat <- sample(1:100 ,1)
-  pitch <-sample(1:pd ,1)
+  bat <- sample(1:100,1)
+  pitch <-sample(1:pd,1)
   result <- bat + pitch
   if (result<6) { #critical hit
     hit <- sample(c(2,3,4), 1, prob=c(14/20,4/20,2/20))
@@ -82,7 +82,7 @@ oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
     outcome = "Walk"
   } else if (result > player$OBT[up] +1 & result < 50 ){ #productive out 1
     player$onbase[up]=0
-    to <- as.numeric(rev(strsplit(as.character(result),"")[[1]])[1])
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
     if (to %in% c(3,7,8,9)){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
     } else if (to %in% c(3,4,5,6)){
@@ -91,7 +91,7 @@ oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
     out = out +1
     outcome="Productive Out"
   } else if (result > 50 & result <70 ){ #productive out 2
-    to <- as.numeric(rev(strsplit(as.character(result),"")[[1]])[1])
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
     if (to %in% c(3,7,8,9)){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
     } else if (to %in% c(3,4,5,6) & length(player$onbase[player$onbase>0]) != 0){
@@ -102,7 +102,7 @@ oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
     out = out +1
     outcome = "Productive Out"
   } else { #out
-    to <- as.numeric(rev(strsplit(as.character(result),"")[[1]])[1])
+    to <- as.numeric(last(strsplit(as.character(result),"")[[1]]))
     if (to %in% c(3,4,5,6) & 1 %in% player$onbase){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]=player$onbase[which(player$onbase %in% player$onbase[player$onbase>1])]+1
       player$onbase[which(player$onbase %in% player$onbase[player$onbase==1])]=0
@@ -116,65 +116,209 @@ oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
   }
   scorers = player$onbase>3
   if (TRUE %in% scorers & out < 4) {
-    runs1= runs1 + sum(scorers)
+    runs <- sum(scorers)
+    runs1= runs1 + runs
     player$onbase[which(player$onbase %in% player$onbase[scorers])]= 0
+    scorecard[floor(innings)+1][[1]][(innings*2)%%2+1]=scorecard[floor(innings)+1][[1]][(innings*2)%%2+1] + runs
   } else if (out > 2){
     innings=innings+0.5
     out=0
-    player[9] <- 0
+    player <- player %>% mutate(onbase = 0)
   }
   
-  return(c(player,runs1,up, out, outcome, result,innings))
+  return(c(player,runs1,up, out, outcome, result, innings, list(scorecard)))
 }
 
-oneAtBatField <- function(dataInput){
-  player1 <- data.frame(dataInput[1:9])
-  onBasers = player1$onbase>0
-  graph <- geom_baseball("MLB","infield") + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==1],x=63, y=70)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==2],x=0, y=134)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==3],x=-63, y=70))
-  return(graph)
+oneSteal<- function(dataInput, base = 1){
+  player <- data.frame(dataInput[1:9])
+  runs1 <- unlist(dataInput[10])
+  up <- unlist(dataInput[11])
+  out <- unlist(dataInput[12])
+  outcome = ""
+  innings = unlist(dataInput[15])
+  scorecard = dataInput[16][[1]]
+  result = sample(1:8,1) - (base-1)
+  if (result < 4){
+    player$onbase[player$onbase==base] = 0
+    outcome= "Failed Steal"
+    out=out+1
+    if (out > 2){
+      innings=innings+0.5
+      out=0
+      player <- player %>% mutate(onbase = 0)
+    }
+  } else{
+    player$onbase[player$onbase==base] = player$onbase[player$onbase==base] + 1
+    outcome = "Steal!"
+  }
+  return(c(player,runs1,up, out, outcome, result, innings, list(scorecard)))
 }
+
+oneBunt <- function(dataInput, basePD=4, pitcherHand="R"){
+  player <- data.frame(dataInput[1:9])
+  runs1 <- unlist(dataInput[10])
+  up <- unlist(dataInput[11])
+  out <- unlist(dataInput[12])
+  outcome = ""
+  innings = unlist(dataInput[15])
+  scorecard = dataInput[16][[1]]
+  if (up ==9){
+    up=0
+  }
+  up=up+1
+  pd <- min(12, basePD + 4*(pitcherHand==player$L.R[up]))
+  result <- sample(1:6,1)
+  if (max(player$onbase)==0){
+    out=out+1
+    outcome= "Failed Bunt"
+    }
+  else if (result %in% c(1,2)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]=0
+      out=out+1
+      player$onbase[up] = player$onbase[up] + 1
+      outcome = "Drag Bunt"
+  } else if (result ==3){
+    if (max(player$onbase==3)){
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]=0
+      out = out +1 
+      player$onbase[up] = player$onbase[up] + 1
+      outcome = "Drag Bunt"
+    } else{
+      player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]= player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]+1
+      out=out+1
+      outcome="Sacrifice Bunt"
+    }
+  } else {
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]= player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]+1
+    out=out+1
+    outcome="Sacrifice Bunt"
+  }
+  scorers = player$onbase>3
+  if (TRUE %in% scorers & out < 4) {
+    runs = sum(scorers)
+    runs1= runs1 + runs
+    player$onbase[which(player$onbase %in% player$onbase[scorers])]= 0
+    scorecard[floor(innings)+1][[1]][(innings*2)%%2+1]=scorecard[floor(innings)+1][[1]][(innings*2)%%2+1] + runs
+  } else if (out > 2){
+    innings=innings+0.5
+    out=0
+    player <- player %>% mutate(onbase = 0)
+  }
+  
+  return(c(player,runs1,up, out, outcome, result, innings, list(scorecard)))
+}
+
+
+
+# oneAtBatField <- function(dataInput){
+#   player1 <- data.frame(dataInput[1:9])
+#   onBasers = player1$onbase>0
+#   graph <- geom_baseball("MLB","infield") + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==1],x=63, y=70)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==2],x=0, y=134)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==3],x=-63, y=70))
+#   return(graph)
+# }
 
 library(shiny)
 library(DT)
 # ui <- page_sidebar( )
 
 ui <- fluidPage(
-    sidebarPanel(
-      actionButton("button", "Simulate at Bat"),
-      conditionalPanel(condition="output.enable==0", actionButton("steal", "steal"))),
-    column(1,
-           textOutput("player")
+  sidebarPanel(
+    actionButton("button", "Simulate at Bat"),
+    actionButton("bunt", "Bunt"),
+    conditionalPanel(condition="output.enable1==0", actionButton("steal1", "Steal Second")),
+    conditionalPanel(condition="output.enable2==0", actionButton("steal2", "Steal Third"))
+  ),
+    column(2,
+      textOutput("player")
     ),
-    column(2,textOutput("score"), textOutput("roll"), textOutput("innings")),
-    column(3, textOutput("outs"), textOutput("outcome")),
-    column(4,plotOutput("table"))
+    column(3,tableOutput("scorecard"),textOutput("score"), textOutput("roll"), textOutput("innings")),
+    column(4, textOutput("outs"), textOutput("outcome")),
+    column(5,div(style = "
+                   margin-left:36%;
+                    display: inline-block;
+                    position: absolute;
+                ",img(src= "https://bennetchristensen.github.io/projects/baseball/field.png", height = 500, width= 500, style ="  position: relative;"), 
+                span(textOutput("firstBaseText"),
+                     style = "
+              color: orange;
+                 position: relative;
+                 text-align: center;
+                     top: -250px;
+                    right: -143px;"
+                ),
+              span(textOutput("secondBaseText"),
+                   style = "
+              color: orange;
+                 position: relative;
+                 text-align: center;
+                     top: -415px;
+                    right: -1px;"
+              ),
+              span(textOutput("thirdBaseText"),
+                   style = "
+              color: orange;
+                 position: relative;
+                 text-align: center;
+                     top: -290px;
+                    right: 141px;"
+              ),
+              )) #,plotOutput("table") #second base is top -400 right -250 ish
   )
   server <- function(input, output) {
-    rv = reactiveValues(x=c(player1,runs1,up1,out, outcome,result,innings), y=c(player2,runs2,up2,out,outcome,result,innings))
+    rv = reactiveValues(x=c(player1,runs1,up1,out, outcome,result,innings,list(scorecard)), y=c(player2,runs2,up2,out,outcome,result,innings,list(scorecard)))
     observeEvent(input$button, {
       if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneAtBat(rv$x)
       rv$y[15]=unlist(rv$x[15])
+      rv$y[16]=rv$x[16]
       } 
-      else {rv$y= oneAtBat(rv$y)
+      else {rv$y=oneAtBat(rv$y)
+      rv$x[15]=unlist(rv$y[15])}
+      rv$x[16]=rv$y[16]
+      }
+      )
+    observeEvent(input$bunt, {
+      if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneBunt(rv$x)
+      rv$y[15]=unlist(rv$x[15])
+      } 
+      else {rv$y=oneBunt(rv$y)
       rv$x[15]=unlist(rv$y[15])}
       }
-                 )
+      )
+    observeEvent(input$steal1, {
+      if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneSteal(rv$x,base=1)
+      rv$y[15]=unlist(rv$x[15])
+      } 
+      else {rv$y=oneSteal(rv$y,base=1)
+      rv$x[15]=unlist(rv$y[15])}
+    })
+    observeEvent(input$steal2, {
+      if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneSteal(rv$x,base=2)
+      rv$y[15]=unlist(rv$x[15])
+      } 
+      else {rv$y=oneSteal(rv$y,base=2)
+      rv$x[15]=unlist(rv$y[15])}
+    })
+    output$scorecard <- renderTable(data.frame(rv$x[16],check.names = F), digits=0)
     output$outcome <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste(unlist(rv$x[13]))}else {paste(unlist(rv$y[13]))})
     output$score <- renderText(paste("Runs: ",unlist(rv$x[10]),"-",unlist(rv$y[10])))
     output$outs <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Outs: ", unlist(rv$x[12]))}else {paste("Outs: ", unlist(rv$y[12]))})
     output$roll <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Roll: ", unlist(rv$x[14]))}else {paste("Roll: ", unlist(rv$y[14]))})
     output$innings <- renderText(paste("Inning: ", unlist(rv$y[15])))
     output$player <- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("At Bat: ", rv$x[[1]][(unlist(rv$x[11])%%9+1)])}else {paste("At Bat: ", rv$y[[1]][(unlist(rv$y[11])%%9+1)])})
-    output$table <- renderPlot({
-      if ((unlist(rv$y[15])*2)%%2==0){
-      oneAtBatField(rv$x)
-      }
-      else {oneAtBatField(rv$y)}
-    })
-    output$enable <- reactive({if(unlist(rv$x[15])==1.5){0}})
-    outputOptions(output, 'enable', suspendWhenHidden=FALSE)
+    # output$table <- renderPlot({
+    #   if ((unlist(rv$y[15])*2)%%2==0){
+    #   oneAtBatField(rv$x)
+    #   }
+    #   else {oneAtBatField(rv$y)} 
+    # })
+    output$thirdBaseText <- renderText(if(3 %in% unlist(rv$x[9])){rv$x[[1]][rv$x[[9]]==3]} else if(3 %in% unlist(rv$y[9])){rv$y[[1]][rv$y[[9]]==3]} else {"0"})
+    output$firstBaseText <- renderText(if(1 %in% unlist(rv$x[9])){rv$x[[1]][rv$x[[9]]==1]} else if(1 %in% unlist(rv$y[9])){rv$y[[1]][rv$y[[9]]==1]} else {"0"})
+    output$secondBaseText <- renderText(if(2 %in% unlist(rv$x[9])){rv$x[[1]][rv$x[[9]]==2]} else if(2 %in% unlist(rv$y[9])){rv$y[[1]][rv$y[[9]]==2]} else {"0"})
+    output$enable1 <- reactive({if(1 %in% unlist(rv$x[9]) | 1 %in% unlist(rv$y[9])){0}})
+    outputOptions(output, 'enable1', suspendWhenHidden=FALSE)
+    output$enable2 <- reactive({if(2 %in% unlist(rv$x[9]) | 2 %in% unlist(rv$y[9])){0}})
+    outputOptions(output, 'enable2', suspendWhenHidden=FALSE)
   }
-  
-shinyApp(ui=ui, server=server)
+  shinyApp(ui=ui, server=server)
 ```
 
