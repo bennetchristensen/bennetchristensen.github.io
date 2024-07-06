@@ -123,7 +123,7 @@ oneAtBat <- function(dataInput, basePD=4, pitcherHand="R"){
   } else if (out > 2){
     innings=innings+0.5
     out=0
-    player <- player %>% mutate(onbase = 0)
+    player[9] <- 0
   }
   
   return(c(player,runs1,up, out, outcome, result, innings, list(scorecard)))
@@ -145,7 +145,7 @@ oneSteal<- function(dataInput, base = 1){
     if (out > 2){
       innings=innings+0.5
       out=0
-      player <- player %>% mutate(onbase = 0)
+      player[9] <- 0
     }
   } else{
     player$onbase[player$onbase==base] = player$onbase[player$onbase==base] + 1
@@ -202,7 +202,7 @@ oneBunt <- function(dataInput, basePD=4, pitcherHand="R"){
   } else if (out > 2){
     innings=innings+0.5
     out=0
-    player <- player %>% mutate(onbase = 0)
+    player[9] <- 0
   }
   
   return(c(player,runs1,up, out, outcome, result, innings, list(scorecard)))
