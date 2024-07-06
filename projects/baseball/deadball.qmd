@@ -1,6 +1,7 @@
 ---
 title: "Deadball Simulator"
 description: "Personal Project"
+image: field.png
 categories:
   - Shiny App
   - Personal Project
