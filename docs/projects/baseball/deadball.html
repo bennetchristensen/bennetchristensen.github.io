@@ -434,9 +434,9 @@ ui &lt;- fluidPage(
     output$thirdBaseText &lt;- renderText(if(3 %in% unlist(rv$x[9])){rv$x[[1]][rv$x[[9]]==3]} else if(3 %in% unlist(rv$y[9])){rv$y[[1]][rv$y[[9]]==3]} else {"0"})
     output$firstBaseText &lt;- renderText(if(1 %in% unlist(rv$x[9])){rv$x[[1]][rv$x[[9]]==1]} else if(1 %in% unlist(rv$y[9])){rv$y[[1]][rv$y[[9]]==1]} else {"0"})
     output$secondBaseText &lt;- renderText(if(2 %in% unlist(rv$x[9])){rv$x[[1]][rv$x[[9]]==2]} else if(2 %in% unlist(rv$y[9])){rv$y[[1]][rv$y[[9]]==2]} else {"0"})
-    output$enable1 &lt;- reactive({if(1 %in% unlist(rv$x[9]) | 1 %in% unlist(rv$y[9])){0}})
+    output$enable1 &lt;- reactive({if((1 %in% unlist(rv$x[9]) &amp; !(2 %in% unlist(rv$x[9])))| (1 %in% unlist(rv$y[9]) &amp; !(2 %in% unlist(rv$y[9])))){0}})
     outputOptions(output, 'enable1', suspendWhenHidden=FALSE)
-    output$enable2 &lt;- reactive({if(2 %in% unlist(rv$x[9]) | 2 %in% unlist(rv$y[9])){0}})
+    output$enable2 &lt;- reactive({if((2 %in% unlist(rv$x[9]) &amp; !(3 %in% unlist(rv$x[9])))| (2 %in% unlist(rv$y[9]) &amp; !(3 %in% unlist(rv$y[9])))){0}})
     outputOptions(output, 'enable2', suspendWhenHidden=FALSE)
   }
   shinyApp(ui=ui, server=server)</code></pre>
