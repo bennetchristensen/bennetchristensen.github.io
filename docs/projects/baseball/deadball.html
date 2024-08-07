@@ -377,8 +377,12 @@ ui &lt;- fluidPage(fluidRow(
     conditionalPanel(condition="output.innCount!=0", textOutput("victory"))
   ),
     
-    column(4,tableOutput("scorecard")), column(2, actionButton("reset", "Reset Game"))
-    ), #,plotOutput("table") #second base is top -400 right -250 ish
+    column(4,tableOutput("scorecard"))
+    ),
+  fluidRow(column(width=2,
+                  textOutput("innings"),textOutput("outs"), textOutput("score"),   
+  ),column(width =2, textOutput("player"),textOutput("outcome"), textOutput("roll")),column(2, actionButton("reset", "Reset Game"))),
+  #,plotOutput("table") #second base is top -400 right -250 ish
   fluidRow(column(4,div(style = "
                    margin-left:0%;
                     display: inline-block;
@@ -408,9 +412,7 @@ ui &lt;- fluidPage(fluidRow(
                      top: -290px;
                     right: 141px;"
               ),
-  )),column(width=2,
-            textOutput("innings"),textOutput("outs"), textOutput("player"),textOutput("score"),   textOutput("outcome"), textOutput("roll")
-  ))
+  )))
   )
   server &lt;- function(input, output) {
     rv = reactiveValues(x=c(player1,runs1,up1,out, outcome,result,innings,list(scorecard)), y=c(player2,runs2,up2,out,outcome,result,innings,list(scorecard)))
