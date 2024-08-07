@@ -166,6 +166,11 @@ oneAtBat &lt;- function(dataInput, basePD=4, pitcherHand="R"){
   outcome = ""
   innings = unlist(dataInput[15])
   scorecard = dataInput[16][[1]]
+  if(length(scorecard)==innings){
+    newScore = data.frame(c(0,0))
+    names(newScore)[1]&lt;-paste(innings)
+    scorecard = cbind(scorecard,newScore)
+  }
   if (up ==9){
     up=0
   }
@@ -282,6 +287,11 @@ oneBunt &lt;- function(dataInput, basePD=4, pitcherHand="R"){
   outcome = ""
   innings = unlist(dataInput[15])
   scorecard = dataInput[16][[1]]
+  if(length(scorecard)==innings){
+    newScore = data.frame(c(0,0))
+    names(newScore)[1]&lt;-paste(innings)
+    scorecard = cbind(scorecard,newScore)
+  }
   if (up ==9){
     up=0
   }
@@ -291,12 +301,12 @@ oneBunt &lt;- function(dataInput, basePD=4, pitcherHand="R"){
   if (max(player$onbase)==0){
     out=out+1
     outcome= "Failed Bunt"
-    }
+  }
   else if (result %in% c(1,2)){
-      player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]=0
-      out=out+1
-      player$onbase[up] = player$onbase[up] + 1
-      outcome = "Drag Bunt"
+    player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]=0
+    out=out+1
+    player$onbase[up] = player$onbase[up] + 1
+    outcome = "Drag Bunt"
   } else if (result ==3){
     if (max(player$onbase==3)){
       player$onbase[which(player$onbase %in% player$onbase[player$onbase==max(player$onbase)])]=0
@@ -329,32 +339,48 @@ oneBunt &lt;- function(dataInput, basePD=4, pitcherHand="R"){
 }
 
 
+oneAtBatField &lt;- function(dataInput){ #try making the graph static with text overtop of it
+  player1 &lt;- data.frame(dataInput[1:9])
+  scorers = player1$onbase&gt;3
+  if (TRUE %in% scorers &amp; out &lt; 4) {
+    runs1= runs1 + sum(scorers)
+    player1$onbase[which(player1$onbase %in% player1$onbase[scorers])]= 0
+  }
+  onBasers = player1$onbase&gt;0
+  graph &lt;- geom_baseball("MLB","infield") +geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==1],x=63, y=70))+geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==2],x=0, y=134))+geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==3],x=-63, y=70))
+  return(graph)
+}
 
-# oneAtBatField &lt;- function(dataInput){
-#   player1 &lt;- data.frame(dataInput[1:9])
-#   onBasers = player1$onbase&gt;0
-#   graph &lt;- geom_baseball("MLB","infield") + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==1],x=63, y=70)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==2],x=0, y=134)) + geom_text(aes(label=player1$STARTING.LINEUP[player1$onbase==3],x=-63, y=70))
-#   return(graph)
-# }
+numSuffix &lt;- function(number){
+  if(!(number %in% c(11,12,13))){
+  withSuff &lt;- switch(as.character(number%%10),
+         "1" = paste0(number,"st"),
+         "2" = paste0(number, "nd"),
+         "3" = paste0(number, "rd"),
+         paste0(number,"th"))} else {
+           withSuff &lt;- paste0(number,"th")
+         }
+  return(withSuff)
+}
 
 library(shiny)
 library(DT)
-# ui &lt;- page_sidebar( )
-
-ui &lt;- fluidPage(
+  
+ui &lt;- fluidPage(fluidRow(
   sidebarPanel(
-    actionButton("button", "Simulate at Bat"),
-    actionButton("bunt", "Bunt"),
+    conditionalPanel(condition="output.innCount==0",
+                     actionButton("button", "Simulate at Bat"),
+                     actionButton("bunt", "Bunt")
+    ,
     conditionalPanel(condition="output.enable1==0", actionButton("steal1", "Steal Second")),
-    conditionalPanel(condition="output.enable2==0", actionButton("steal2", "Steal Third"))
+    conditionalPanel(condition="output.enable2==0", actionButton("steal2", "Steal Third"))),
+    conditionalPanel(condition="output.innCount!=0", textOutput("victory"))
   ),
-    column(2,
-      textOutput("player")
-    ),
-    column(3,tableOutput("scorecard"),textOutput("score"), textOutput("roll"), textOutput("innings")),
-    column(4, textOutput("outs"), textOutput("outcome")),
-    column(5,div(style = "
-                   margin-left:36%;
+    
+    column(4,tableOutput("scorecard")), column(2, actionButton("reset", "Reset Game"))
+    ), #,plotOutput("table") #second base is top -400 right -250 ish
+  fluidRow(column(4,div(style = "
+                   margin-left:0%;
                     display: inline-block;
                     position: absolute;
                 ",img(src= "https://bennetchristensen.github.io/projects/baseball/field.png", height = 500, width= 500, style ="  position: relative;"), 
@@ -382,10 +408,16 @@ ui &lt;- fluidPage(
                      top: -290px;
                     right: 141px;"
               ),
-              )) #,plotOutput("table") #second base is top -400 right -250 ish
+  )),column(width=2,
+            textOutput("innings"),textOutput("outs"), textOutput("player"),textOutput("score"),   textOutput("outcome"), textOutput("roll")
+  ))
   )
   server &lt;- function(input, output) {
     rv = reactiveValues(x=c(player1,runs1,up1,out, outcome,result,innings,list(scorecard)), y=c(player2,runs2,up2,out,outcome,result,innings,list(scorecard)))
+    observeEvent(input$reset,{
+      rv$x=c(player1,runs1,up1,out, outcome,result,innings,list(scorecard))
+      rv$y=c(player2,runs2,up2,out,outcome,result,innings,list(scorecard))
+    })
     observeEvent(input$button, {
       if ((unlist(rv$y[15])*2)%%2==0){rv$x = oneAtBat(rv$x)
       rv$y[15]=unlist(rv$x[15])
@@ -420,10 +452,12 @@ ui &lt;- fluidPage(
     })
     output$scorecard &lt;- renderTable(data.frame(rv$x[16],check.names = F), digits=0)
     output$outcome &lt;- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste(unlist(rv$x[13]))}else {paste(unlist(rv$y[13]))})
-    output$score &lt;- renderText(paste("Runs: ",unlist(rv$x[10]),"-",unlist(rv$y[10])))
+    output$score &lt;- renderText(paste("Score: ",unlist(rv$x[10]),"-",unlist(rv$y[10])))
     output$outs &lt;- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Outs: ", unlist(rv$x[12]))}else {paste("Outs: ", unlist(rv$y[12]))})
     output$roll &lt;- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("Roll: ", unlist(rv$x[14]))}else {paste("Roll: ", unlist(rv$y[14]))})
-    output$innings &lt;- renderText(paste("Inning: ", unlist(rv$y[15])))
+    output$innings &lt;- renderText(
+      if((unlist(rv$y[15])*2)%%2==0){paste("Inning: Top of the ", numSuffix(floor(unlist(rv$y[15]))))}
+      else {paste("Inning: Bottom of the ", numSuffix(floor(unlist(rv$y[15]))))})
     output$player &lt;- renderText(if ((unlist(rv$y[15])*2)%%2==0){paste("At Bat: ", rv$x[[1]][(unlist(rv$x[11])%%9+1)])}else {paste("At Bat: ", rv$y[[1]][(unlist(rv$y[11])%%9+1)])})
     # output$table &lt;- renderPlot({
     #   if ((unlist(rv$y[15])*2)%%2==0){
@@ -438,8 +472,11 @@ ui &lt;- fluidPage(
     outputOptions(output, 'enable1', suspendWhenHidden=FALSE)
     output$enable2 &lt;- reactive({if((2 %in% unlist(rv$x[9]) &amp; !(3 %in% unlist(rv$x[9])))| (2 %in% unlist(rv$y[9]) &amp; !(3 %in% unlist(rv$y[9])))){0}})
     outputOptions(output, 'enable2', suspendWhenHidden=FALSE)
+    output$innCount &lt;- reactive({if(unlist(rv$x[15])&lt;9.5 |unlist(rv$x[10]) == unlist(rv$y[10])|((unlist(rv$x[10]) &gt; unlist(rv$y[10])) &amp; (unlist(rv$y[15])*2)%%2==1)|((unlist(rv$x[10]) &lt; unlist(rv$y[10])) &amp; (unlist(rv$y[15])*2)%%2==0)){0}})
+    outputOptions(output, 'innCount', suspendWhenHidden=FALSE)
+    output$victory&lt;- renderText(if(unlist(rv$x[10]) &gt; unlist(rv$y[10])){paste0(scorecard$Team[[1]], " wins with a score of ",unlist(rv$x[10]) ," to ",unlist(rv$y[10]),"!")}else{paste0(scorecard$Team[[2]], " wins with a score of ",unlist(rv$x[10]) ," to ",unlist(rv$y[10]),"!")})
   }
-  shinyApp(ui=ui, server=server)</code></pre>
+shinyApp(ui=ui, server=server)</code></pre>
 
 
 
